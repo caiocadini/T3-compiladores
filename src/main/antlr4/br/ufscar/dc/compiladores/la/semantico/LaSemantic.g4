@@ -36,26 +36,6 @@ FECHAPAR:   ')'
     ;
 COMMA: ',';
 
-//Comandos
-CMD_LEIA: 'leia';
-CMD_ESCREVA: 'escreva';
-CMD_SE : 'se';
-CMD_FIMSE: 'fim_se';
-CMD_SENAO: 'senao';
-CMD_ENTAO: 'entao';
-CMD_CASO: 'caso';
-CMD_FIMCASO: 'fim_caso';
-CMD_PARA: 'para';
-CMD_FIMPARA: 'fim_para';
-CMD_ENQUANTO: 'enquanto';
-CMD_FIMENQUANTO:'fim_enquanto';
-CMD_FACA: 'faca';
-CMD_ATE: 'ate';
-CMD_SEJA: 'seja';
-CMD_ATIBUICAO: '<-';
-CMD_RETORNE: 'retorne';
-CMD_DECLARE: 'declare';
-CMD_TIPO: 'tipo';
 /*PROCEDIMENTOS E FUNÇÕES */
 PROCEDIMENTO: 'procedimento';
 FIM_PROCEDIMENTO: 'fim_procedimento';

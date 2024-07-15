@@ -9,7 +9,10 @@ public class TabelaDeSimbolos {
     public enum TipoLa {
         INT,
         REAL,
-        INVALIDO
+        INVALIDO,
+        LIT,
+        LOG,
+        REG
     }
 
     public enum TipoEntrada {
