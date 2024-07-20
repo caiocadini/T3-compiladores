@@ -2,7 +2,6 @@ package br.ufscar.dc.compiladores.la.semantico;
 
 import java.io.IOException;
 import java.io.PrintWriter;
-
 import org.antlr.v4.runtime.CharStream;
 import org.antlr.v4.runtime.CharStreams;
 import org.antlr.v4.runtime.CommonTokenStream;
@@ -31,6 +30,7 @@ public class Principal {
             for (String erro : LaSemanticoUtils.errosSemanticos) {
                 writer.println(erro);
             }
+            writer.println("Fim da compilacao");
         }
     }
 }
