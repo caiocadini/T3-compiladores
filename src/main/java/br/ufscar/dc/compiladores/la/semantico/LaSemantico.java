@@ -24,9 +24,11 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
                 TipoLa tipoVar = obterTipo(strTipoVar);
 
                 if (tabelaLocal.existe(nomeVar)) {
-                    LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(), "identificador " + nomeVar + " ja declarado anteriormente");
+                    LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
+                            "identificador " + nomeVar + " ja declarado anteriormente");
                 } else if (tipoVar == TipoLa.INVALIDO) {
-                    LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(), "tipo " + strTipoVar + " nao declarado");
+                    LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
+                            "tipo " + strTipoVar + " nao declarado");
                 } else {
                     tabelaLocal.adicionar(nomeVar, tipoVar);
                 }
@@ -41,12 +43,14 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         String nome = ctx.IDENT().getText();
 
         if (tabelaGlobal.existe(nome)) {
-            LaSemanticoUtils.adicionarErroSemantico(ctx.IDENT().getSymbol(), "identificador " + nome + " ja declarado anteriormente");
+            LaSemanticoUtils.adicionarErroSemantico(ctx.IDENT().getSymbol(),
+                    "identificador " + nome + " ja declarado anteriormente");
         } else {
             // Adiciona função ou procedimento
             TipoLa tipo = ctx.tipo_estendido() != null ? obterTipo(ctx.tipo_estendido().getText()) : TipoLa.INVALIDO;
             if (ctx.tipo_estendido() != null && tipo == TipoLa.INVALIDO) {
-                LaSemanticoUtils.adicionarErroSemantico(ctx.IDENT().getSymbol(), "tipo " + ctx.tipo_estendido().getText() + " nao declarado");
+                LaSemanticoUtils.adicionarErroSemantico(ctx.IDENT().getSymbol(),
+                        "tipo " + ctx.tipo_estendido().getText() + " nao declarado");
             }
             tabelaGlobal.adicionar(nome, tipo);
 
@@ -61,9 +65,11 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
                         TipoLa tipoParamLa = obterTipo(tipoParam);
 
                         if (tipoParamLa == TipoLa.INVALIDO) {
-                            LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(), "tipo " + tipoParam + " nao declarado");
+                            LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
+                                    "tipo " + tipoParam + " nao declarado");
                         } else if (escopos.obterEscopoAtual().existe(nomeParam)) {
-                            LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(), "identificador " + nomeParam + " ja declarado anteriormente");
+                            LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
+                                    "identificador " + nomeParam + " ja declarado anteriormente");
                         } else {
                             escopos.obterEscopoAtual().adicionar(nomeParam, tipoParamLa);
                         }
@@ -79,16 +85,45 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
     public Void visitCmdAtribuicao(LaSemanticParser.CmdAtribuicaoContext ctx) {
         TipoLa tipoExpressao = LaSemanticoUtils.verificarTipo(escopos.obterEscopoAtual(), ctx.expressao());
         String nomeVar = ctx.identificador().getText();
-
+    
         if (!escopos.obterEscopoAtual().existe(nomeVar)) {
-            LaSemanticoUtils.adicionarErroSemantico(ctx.identificador().getStart(), "identificador " + nomeVar + " nao declarado");
+            LaSemanticoUtils.adicionarErroSemantico(ctx.identificador().getStart(),
+                    "identificador " + nomeVar + " nao declarado");
         } else {
             TipoLa tipoVariavel = escopos.obterEscopoAtual().verificar(nomeVar);
+    
             if (!tipoCompativel(tipoVariavel, tipoExpressao)) {
-                LaSemanticoUtils.adicionarErroSemantico(ctx.identificador().getStart(), "atribuicao nao compativel para " + nomeVar);
+                LaSemanticoUtils.adicionarErroSemantico(ctx.identificador().getStart(),
+                        "atribuicao nao compativel para " + nomeVar);
             }
         }
         return super.visitCmdAtribuicao(ctx);
+    }
+
+    @Override
+    public Void visitCmdEnquanto(LaSemanticParser.CmdEnquantoContext ctx) {
+        TabelaDeSimbolos tabelaEnquanto = escopos.obterEscopoAtual();
+
+        TabelaDeSimbolos.TipoLa tipo = LaSemanticoUtils.verificarTipo(tabelaEnquanto,
+                ctx.expressao());
+        if (tipo != TabelaDeSimbolos.TipoLa.LOG) {
+            LaSemanticoUtils.adicionarErroSemantico(ctx.expressao().start,
+                    "Expressão no comando 'enquanto' não é do tipo lógico");
+        }
+
+        return super.visitCmdEnquanto(ctx);
+    }
+    
+    @Override
+    public Void visitCmdEscreva(LaSemanticParser.CmdEscrevaContext ctx) {
+        TabelaDeSimbolos tabelaEscreva = escopos.obterEscopoAtual();
+
+        for (LaSemanticParser.ExpressaoContext expressao : ctx.expressao()) {
+            TabelaDeSimbolos.TipoLa tipo = LaSemanticoUtils.verificarTipo(tabelaEscreva,
+                    expressao);
+        }
+
+        return super.visitCmdEscreva(ctx);
     }
 
     @Override
@@ -97,7 +132,8 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         for (LaSemanticParser.IdentificadorContext identificador : identificadores) {
             String nomeVar = identificador.getText();
             if (!escopos.obterEscopoAtual().existe(nomeVar)) {
-                LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(), "identificador " + nomeVar + " nao declarado");
+                LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
+                        "identificador " + nomeVar + " nao declarado");
             }
         }
         return super.visitCmdLeia(ctx);
@@ -118,12 +154,14 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         }
     }
 
-    private boolean tipoCompativel(TipoLa tipoVar, TipoLa tipoExpr) {
-
-        return tipoVar == tipoExpr ||
-                (tipoVar == TipoLa.INT && tipoExpr == TipoLa.REAL) ||
-                (tipoVar == TipoLa.REAL && tipoExpr == TipoLa.INT) ||
-                (tipoVar == TipoLa.REAL && tipoExpr == TipoLa.REAL) ||
-                (tipoVar == TipoLa.INT && tipoExpr == TipoLa.INT);
+    public static boolean tipoCompativel(TipoLa tipoVar, TipoLa tipoExpr) {
+        if (tipoVar == tipoExpr) {
+            return true;
+        }
+        if ((tipoVar == TabelaDeSimbolos.TipoLa.REAL && tipoExpr == TabelaDeSimbolos.TipoLa.INT) ||
+            (tipoVar == TabelaDeSimbolos.TipoLa.INT && tipoExpr == TabelaDeSimbolos.TipoLa.REAL)) {
+            return true;
+        }
+        return false;
     }
 }
