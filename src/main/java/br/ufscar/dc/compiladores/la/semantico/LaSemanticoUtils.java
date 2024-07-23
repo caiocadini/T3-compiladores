@@ -26,17 +26,23 @@ public class LaSemanticoUtils {
     }
 
     public static TabelaDeSimbolos.TipoLa verificarTipo(TabelaDeSimbolos tabela, LaSemanticParser.TermoContext ctx) {
-        TabelaDeSimbolos.TipoLa ret = null;
-        for (LaSemanticParser.FatorContext fator : ctx.fator()) {
-            TabelaDeSimbolos.TipoLa aux = verificarTipo(tabela, fator);
-            if (ret == null) {
+        TabelaDeSimbolos.TipoLa ret = verificarTipo(tabela, ctx.fator().get(0));
+    
+        for (int i = 1; i < ctx.fator().size(); i++) {
+            TabelaDeSimbolos.TipoLa aux = verificarTipo(tabela, ctx.fator(i));
+            
+            if (LaSemantico.tipoCompativel(ret, aux)) {
+                if (aux == TabelaDeSimbolos.TipoLa.REAL) {
+                    ret = TabelaDeSimbolos.TipoLa.REAL;
+                }
+            } else {
                 ret = aux;
-            } else if (ret != aux && aux != TabelaDeSimbolos.TipoLa.INVALIDO) {
-                ret = TabelaDeSimbolos.TipoLa.INVALIDO;
             }
         }
+    
         return ret;
     }
+    
 
     public static TabelaDeSimbolos.TipoLa verificarTipo(TabelaDeSimbolos tabela, LaSemanticParser.FatorContext ctx) {
         TabelaDeSimbolos.TipoLa ret = null;
@@ -60,7 +66,7 @@ public class LaSemanticoUtils {
     }
 
     public static TabelaDeSimbolos.TipoLa verificarTipo(TabelaDeSimbolos tabela, LaSemanticParser.Parcela_unarioContext ctx) {
-
+        
         TabelaDeSimbolos.TipoLa tipoRetorno = null;
         String nome;
 
@@ -68,11 +74,14 @@ public class LaSemanticoUtils {
             if (!ctx.identificador().dimensao().exp_aritmetica().isEmpty()) {
                 nome = ctx.identificador().IDENT().get(0).getText();
             } else {
+                
                 nome = ctx.identificador().getText();
             }
             if (tabela.existe(nome)) {
                 tipoRetorno = tabela.verificar(nome);
+                
             } else {
+                
                 adicionarErroSemantico(ctx.identificador().getStart(), "identificador " + nome + " nao declarado");
                 tipoRetorno = TabelaDeSimbolos.TipoLa.INVALIDO;
             }
