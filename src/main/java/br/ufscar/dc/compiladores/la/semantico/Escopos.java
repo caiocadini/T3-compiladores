@@ -9,20 +9,24 @@ public class Escopos {
 
     public Escopos() {
         pilhaDeTabelas = new LinkedList<>();
-        criarNovoEscopo();
+        criarNovoEscopo();  // Cria o primeiro escopo padrão.
     }
 
+    // Cria um novo escopo adicionando uma nova TabelaDeSimbolos na pilha.
     public void criarNovoEscopo() {
         pilhaDeTabelas.push(new TabelaDeSimbolos());
     }
+
 
     public TabelaDeSimbolos obterEscopoAtual() {
         return pilhaDeTabelas.peek();
     }
 
+
     public List<TabelaDeSimbolos> percorrerEscoposAninhados() {
         return pilhaDeTabelas;
     }
+
 
     public void abandonarEscopo() {
         pilhaDeTabelas.pop();

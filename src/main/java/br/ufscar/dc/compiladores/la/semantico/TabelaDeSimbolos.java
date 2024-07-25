@@ -11,7 +11,6 @@ public class TabelaDeSimbolos {
         LIT,
         LOG,
         REG
-        // Add other types as needed
     }
 
     private Map<String, TipoLa> tabela;
@@ -32,6 +31,7 @@ public class TabelaDeSimbolos {
         return tabela.get(nome);
     }
 
+    //Usado para debugging
     public Map<String, TipoLa> obterTodosSimbolos() {
         return tabela;
     }

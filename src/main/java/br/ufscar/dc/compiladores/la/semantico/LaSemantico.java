@@ -4,8 +4,10 @@ import br.ufscar.dc.compiladores.la.semantico.TabelaDeSimbolos.TipoLa;
 import java.util.List;
 import java.util.Map;
 
+
 public class LaSemantico extends LaSemanticBaseVisitor<Void> {
 
+    // Gerencia os escopos do programa
     public static Escopos escopos = new Escopos();
 
     @Override
@@ -19,24 +21,27 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         TabelaDeSimbolos tabelaLocal = escopos.obterEscopoAtual();
 
         if (ctx.variavel() != null) {
+            // Itera sobre todos os identificadores na declaração de variável
             for (LaSemanticParser.IdentificadorContext identificador : ctx.variavel().identificador()) {
                 String nomeVar = identificador.getText();
                 String strTipoVar = ctx.variavel().tipo().getText();
                 TipoLa tipoVar = obterTipo(strTipoVar);
 
+                // Verifica se a variável já foi declarada
                 if (tabelaLocal.existe(nomeVar)) {
                     LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
                             "identificador " + nomeVar + " ja declarado anteriormente");
                 } else if (tipoVar == TipoLa.INVALIDO) {
+                    // Verifica se o tipo é válido
                     LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
                             "tipo " + strTipoVar + " nao declarado");
                     tabelaLocal.adicionar(nomeVar, tipoVar);
                 } else {
+                    // Adiciona a variável na tabela de símbolos
                     tabelaLocal.adicionar(nomeVar, tipoVar);    
                 }
             }
         }
-
 
         return super.visitDeclaracao_local(ctx);
     }
@@ -46,11 +51,12 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         TabelaDeSimbolos tabelaGlobal = escopos.obterEscopoAtual();
         String nome = ctx.IDENT().getText();
 
+        // Verifica se o identificador já foi declarado
         if (tabelaGlobal.existe(nome)) {
             LaSemanticoUtils.adicionarErroSemantico(ctx.IDENT().getSymbol(),
                     "identificador " + nome + " ja declarado anteriormente");
         } else {
-            // Adiciona função ou procedimento
+            // Adiciona função ou procedimento na tabela global
             TipoLa tipo = ctx.tipo_estendido() != null ? obterTipo(ctx.tipo_estendido().getText()) : TipoLa.INVALIDO;
             if (ctx.tipo_estendido() != null && tipo == TipoLa.INVALIDO) {
                 LaSemanticoUtils.adicionarErroSemantico(ctx.IDENT().getSymbol(),
@@ -58,8 +64,8 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
             }
             tabelaGlobal.adicionar(nome, tipo);
 
+            // Cria novo escopo para os parâmetros da função ou procedimento
             escopos.criarNovoEscopo();
-            // Adiciona parâmetros da função ou procedimento
             if (ctx.parametros() != null) {
                 List<LaSemanticParser.ParametroContext> parametros = ctx.parametros().parametro();
                 for (LaSemanticParser.ParametroContext param : parametros) {
@@ -68,13 +74,16 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
                         String tipoParam = param.tipo_estendido().getText();
                         TipoLa tipoParamLa = obterTipo(tipoParam);
 
+                        // Verifica se o tipo do parâmetro é válido
                         if (tipoParamLa == TipoLa.INVALIDO) {
                             LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
                                     "tipo " + tipoParam + " nao declarado");
                         } else if (escopos.obterEscopoAtual().existe(nomeParam)) {
+                            // Verifica se o identificador do parâmetro já foi declarado
                             LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
                                     "identificador " + nomeParam + " ja declarado anteriormente");
                         } else {
+                            // Adiciona o parâmetro na tabela de símbolos do escopo atual
                             escopos.obterEscopoAtual().adicionar(nomeParam, tipoParamLa);
                         }
                     }
@@ -87,13 +96,16 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
 
     @Override
     public Void visitCmdAtribuicao(LaSemanticParser.CmdAtribuicaoContext ctx) {
+        // Verifica o tipo da expressão
         TipoLa tipoExpressao = LaSemanticoUtils.verificarTipo(escopos.obterEscopoAtual(), ctx.expressao());
         String nomeVar = ctx.identificador().getText();
 
+        // Verifica se a variável foi declarada
         if (!escopos.obterEscopoAtual().existe(nomeVar)) {
             LaSemanticoUtils.adicionarErroSemantico(ctx.identificador().getStart(),
                     "identificador " + nomeVar + " nao declarado");
         } else {
+            // Verifica se o tipo da variável é compatível com o tipo da expressão
             TipoLa tipoVariavel = escopos.obterEscopoAtual().verificar(nomeVar);
 
             if (!tipoCompativel(tipoVariavel, tipoExpressao)) {
@@ -108,6 +120,7 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
     public Void visitCmdEnquanto(LaSemanticParser.CmdEnquantoContext ctx) {
         TabelaDeSimbolos tabelaEnquanto = escopos.obterEscopoAtual();
 
+        // Verifica se a expressão no comando 'enquanto' é do tipo lógico
         TabelaDeSimbolos.TipoLa tipo = LaSemanticoUtils.verificarTipo(tabelaEnquanto,
                 ctx.expressao());
         if (tipo != TabelaDeSimbolos.TipoLa.LOG) {
@@ -122,6 +135,7 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
     public Void visitCmdEscreva(LaSemanticParser.CmdEscrevaContext ctx) {
         TabelaDeSimbolos tabelaEscreva = escopos.obterEscopoAtual();
 
+        // Verifica o tipo das expressões nos comandos 'escreva'
         for (LaSemanticParser.ExpressaoContext expressao : ctx.expressao()) {
             TabelaDeSimbolos.TipoLa tipo = LaSemanticoUtils.verificarTipo(tabelaEscreva,
                     expressao);
@@ -130,11 +144,13 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         return super.visitCmdEscreva(ctx);
     }
 
+
     @Override
     public Void visitCmdLeia(LaSemanticParser.CmdLeiaContext ctx) {
         List<LaSemanticParser.IdentificadorContext> identificadores = ctx.identificador();
         for (LaSemanticParser.IdentificadorContext identificador : identificadores) {
             String nomeVar = identificador.getText();
+            // Verifica se o identificador foi declarado
             if (!escopos.obterEscopoAtual().existe(nomeVar)) {
                 LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
                         "identificador " + nomeVar + " nao declarado");
@@ -142,7 +158,6 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         }
         return super.visitCmdLeia(ctx);
     }
-
     private TipoLa obterTipo(String strTipo) {
         switch (strTipo) {
             case "inteiro":
@@ -162,6 +177,7 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
         if (tipoVar == tipoExpr) {
             return true;
         }
+        // Inteiros podem ser atribuídos a reais e vice-versa
         if ((tipoVar == TabelaDeSimbolos.TipoLa.REAL && tipoExpr == TabelaDeSimbolos.TipoLa.INT) ||
                 (tipoVar == TabelaDeSimbolos.TipoLa.INT && tipoExpr == TabelaDeSimbolos.TipoLa.REAL)) {
             return true;
