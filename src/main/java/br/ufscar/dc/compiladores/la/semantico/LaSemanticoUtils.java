@@ -2,6 +2,8 @@ package br.ufscar.dc.compiladores.la.semantico;
 
 import java.util.ArrayList;
 import java.util.List;
+import java.util.Map;
+
 import org.antlr.v4.runtime.Token;
 
 public class LaSemanticoUtils {
@@ -66,28 +68,26 @@ public class LaSemanticoUtils {
     }
 
     public static TabelaDeSimbolos.TipoLa verificarTipo(TabelaDeSimbolos tabela, LaSemanticParser.Parcela_unarioContext ctx) {
-        
         TabelaDeSimbolos.TipoLa tipoRetorno = null;
         String nome;
-
+    
         if (ctx.identificador() != null) {
             if (!ctx.identificador().dimensao().exp_aritmetica().isEmpty()) {
                 nome = ctx.identificador().IDENT().get(0).getText();
             } else {
-                
                 nome = ctx.identificador().getText();
             }
             if (tabela.existe(nome)) {
                 tipoRetorno = tabela.verificar(nome);
-                
             } else {
-                
-                adicionarErroSemantico(ctx.identificador().getStart(), "identificador " + nome + " nao declarado");
-                tipoRetorno = TabelaDeSimbolos.TipoLa.INVALIDO;
+                TabelaDeSimbolos aux = LaSemantico.escopos.obterEscopoAtual();
+                if(!aux.existe(nome)){
+                    adicionarErroSemantico(ctx.identificador().getStart(), "identificador " + nome + " nao declarado");
+                    tipoRetorno = TabelaDeSimbolos.TipoLa.INVALIDO;
+                } else {
+                    tipoRetorno = aux.verificar(nome);
+                }
             }
-        } else if (ctx.IDENT() != null) {
-            adicionarErroSemantico(ctx.start, "Funcao ou procedimento " + ctx.IDENT().getText() + " nao declarado");
-            tipoRetorno = TabelaDeSimbolos.TipoLa.INVALIDO;
         } else if (ctx.NUM_INT() != null) {
             tipoRetorno = TabelaDeSimbolos.TipoLa.INT;
         } else if (ctx.NUM_REAL() != null) {
@@ -97,6 +97,7 @@ public class LaSemanticoUtils {
         }
         return tipoRetorno;
     }
+    
 
     public static TabelaDeSimbolos.TipoLa verificarTipo(TabelaDeSimbolos tabela, LaSemanticParser.Parcela_nao_unarioContext ctx) {
 
@@ -106,7 +107,7 @@ public class LaSemanticoUtils {
         if (ctx.identificador() != null) {
             nome = ctx.identificador().getText();
             if (!tabela.existe(nome)) {
-                adicionarErroSemantico(ctx.identificador().getStart(), "Identificador " + nome + " nao declarado");
+                adicionarErroSemantico(ctx.identificador().getStart(), "identificador " + nome + " nao declarado");
                 tipoRetorno = TabelaDeSimbolos.TipoLa.INVALIDO;
             } else {
                 tipoRetorno = tabela.verificar(nome);

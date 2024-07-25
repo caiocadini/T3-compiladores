@@ -1,48 +1,38 @@
-package  br.ufscar.dc.compiladores.la.semantico;
+package br.ufscar.dc.compiladores.la.semantico;
 
 import java.util.HashMap;
 import java.util.Map;
 
 public class TabelaDeSimbolos {
-
-    private final Map<String, EntradaTabelaDeSimbolos> tabela;
     public enum TipoLa {
+        INVALIDO,
         INT,
         REAL,
-        INVALIDO,
         LIT,
         LOG,
         REG
+        // Add other types as needed
     }
 
-    public enum TipoEntrada {
-        VARIAVEL, 
-        PROCEDIMENTO,
-        FUNCAO
-    }
-
-    class EntradaTabelaDeSimbolos {
-        String nome;
-        TipoLa tipo;
-        private EntradaTabelaDeSimbolos(String nome, TipoLa tipo) {
-            this.nome = nome;
-            this.tipo = tipo;
-        }
-    }
+    private Map<String, TipoLa> tabela;
 
     public TabelaDeSimbolos() {
-        this.tabela = new HashMap<>();
+        tabela = new HashMap<>();
     }
-    
+
     public void adicionar(String nome, TipoLa tipo) {
-        tabela.put(nome, new EntradaTabelaDeSimbolos(nome, tipo));
+        tabela.put(nome, tipo);
     }
-    
+
     public boolean existe(String nome) {
         return tabela.containsKey(nome);
     }
-    
+
     public TipoLa verificar(String nome) {
-        return tabela.get(nome).tipo;
+        return tabela.get(nome);
+    }
+
+    public Map<String, TipoLa> obterTodosSimbolos() {
+        return tabela;
     }
 }

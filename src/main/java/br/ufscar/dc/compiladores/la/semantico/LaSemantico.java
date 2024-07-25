@@ -2,6 +2,7 @@ package br.ufscar.dc.compiladores.la.semantico;
 
 import br.ufscar.dc.compiladores.la.semantico.TabelaDeSimbolos.TipoLa;
 import java.util.List;
+import java.util.Map;
 
 public class LaSemantico extends LaSemanticBaseVisitor<Void> {
 
@@ -29,11 +30,14 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
                 } else if (tipoVar == TipoLa.INVALIDO) {
                     LaSemanticoUtils.adicionarErroSemantico(identificador.getStart(),
                             "tipo " + strTipoVar + " nao declarado");
-                } else {
                     tabelaLocal.adicionar(nomeVar, tipoVar);
+                } else {
+                    tabelaLocal.adicionar(nomeVar, tipoVar);    
                 }
             }
         }
+
+
         return super.visitDeclaracao_local(ctx);
     }
 
@@ -85,13 +89,13 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
     public Void visitCmdAtribuicao(LaSemanticParser.CmdAtribuicaoContext ctx) {
         TipoLa tipoExpressao = LaSemanticoUtils.verificarTipo(escopos.obterEscopoAtual(), ctx.expressao());
         String nomeVar = ctx.identificador().getText();
-    
+
         if (!escopos.obterEscopoAtual().existe(nomeVar)) {
             LaSemanticoUtils.adicionarErroSemantico(ctx.identificador().getStart(),
                     "identificador " + nomeVar + " nao declarado");
         } else {
             TipoLa tipoVariavel = escopos.obterEscopoAtual().verificar(nomeVar);
-    
+
             if (!tipoCompativel(tipoVariavel, tipoExpressao)) {
                 LaSemanticoUtils.adicionarErroSemantico(ctx.identificador().getStart(),
                         "atribuicao nao compativel para " + nomeVar);
@@ -113,7 +117,7 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
 
         return super.visitCmdEnquanto(ctx);
     }
-    
+
     @Override
     public Void visitCmdEscreva(LaSemanticParser.CmdEscrevaContext ctx) {
         TabelaDeSimbolos tabelaEscreva = escopos.obterEscopoAtual();
@@ -159,7 +163,7 @@ public class LaSemantico extends LaSemanticBaseVisitor<Void> {
             return true;
         }
         if ((tipoVar == TabelaDeSimbolos.TipoLa.REAL && tipoExpr == TabelaDeSimbolos.TipoLa.INT) ||
-            (tipoVar == TabelaDeSimbolos.TipoLa.INT && tipoExpr == TabelaDeSimbolos.TipoLa.REAL)) {
+                (tipoVar == TabelaDeSimbolos.TipoLa.INT && tipoExpr == TabelaDeSimbolos.TipoLa.REAL)) {
             return true;
         }
         return false;
